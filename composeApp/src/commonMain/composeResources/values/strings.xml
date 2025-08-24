@@ -1,0 +1,12 @@
+<resources>
+    <string name="form_loadingMessage">Loading...</string>
+    <string name="form_loadingErrorMessage">Something went wrong!</string>
+    <string name="form_loadingErrorButtonRetry">Retry?</string>
+    <string name="form_inputLabel">New value</string>
+    <string name="form_buttonSubmit">Submit</string>
+    <string name="form_savingErrorMessage">Something went wrong!</string>
+    <string name="form_savingErrorButtonRetry">Retry</string>
+    <string name="form_savingErrorButtonCancel">Cancel</string>
+    <string name="form_savingSuccess">Form successfully saved!</string>
+    <string name="form_savingSuccessButtonReset">Reset</string>
+</resources>
