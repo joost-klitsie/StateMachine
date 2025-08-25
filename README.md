@@ -1,7 +1,13 @@
 This is an example project showing off a state machine with a simple UI to show off its capabilities.
 The link to the supporting article will arrive soon!
 
-The demo looks like this:
+The demo shows that you can control the following flow:
+1. Load form data, with error handling
+2. Manipulate data
+3. Save the data with again proper error handling
+4. Show the success screen
+
+<img src="docs/state_machine_ez-gif.gif" width="250"/>
 
 This is a Kotlin Multiplatform project targeting Android, Web, Desktop (JVM).
 
