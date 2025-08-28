@@ -1,13 +1,11 @@
 package com.klitsie.statemachine.form.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement.spacedBy
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,9 +18,6 @@ fun FormInputScreen(
 	state: FormViewState.FormInput,
 	onValueChanged: (String) -> Unit,
 	onSave: () -> Unit,
-	onConsumeFailure: () -> Unit,
-	onSuccess: () -> Unit,
-	onFailure: (Throwable) -> Unit,
 ) {
 	Column(
 		modifier = Modifier
@@ -33,6 +28,12 @@ fun FormInputScreen(
 		OutlinedTextField(
 			value = state.value,
 			onValueChange = onValueChanged,
+			supportingText = state.inputErrorMessage?.let { errorMessage ->
+				@Composable {
+					Text(errorMessage)
+				}
+			},
+			isError = state.inputErrorMessage != null,
 		)
 		Button(onClick = onSave) {
 			AnimatedVisibility(state.showLoading) {
@@ -44,37 +45,6 @@ fun FormInputScreen(
 				)
 			}
 			Text("Save")
-		}
-		AnimatedVisibility(
-			state.showLoading,
-			enter = fadeIn(animationSpec = tween(220, delayMillis = 150)) + expandVertically(),
-			exit = fadeOut() + shrinkVertically(animationSpec = tween(220, delayMillis = 150)),
-		) {
-			Row(horizontalArrangement = spacedBy(16.dp)) {
-				Button(onClick = onSuccess) {
-					Text("Simulate Success")
-				}
-				Button(onClick = { onFailure(Throwable("Simulated exception")) }) {
-					Text("Simulate Failure")
-				}
-			}
-		}
-		if (state.showErrorDialog) {
-			AlertDialog(
-				onDismissRequest = {},
-				confirmButton = {
-					Button(onClick = onSave) {
-						Text("Retry")
-					}
-				},
-				dismissButton = {
-					TextButton(onClick = onConsumeFailure) {
-						Text("Cancel")
-					}
-				},
-				title = { Text("Failure!") },
-				text = { Text("Something went wrong :(") }
-			)
 		}
 	}
 }
