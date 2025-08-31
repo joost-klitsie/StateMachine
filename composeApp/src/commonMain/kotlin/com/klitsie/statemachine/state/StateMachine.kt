@@ -24,8 +24,8 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 
 	override val state by lazy {
 		events.receiveAsFlow()
-            .handleEvents()
-            .handleSideEffects()
+			.handleEvents()
+			.handleSideEffects()
 			.stateIn(
 				scope = scope,
 				started = started,
@@ -39,66 +39,79 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 		}
 	}
 
-    @Suppress("AssignedValueIsNeverRead")
-    private fun Flow<Event>.handleEvents(): Flow<State> {
-        var lastValue: State = initialState
-        return runningFold(lastValue) { state, event ->
-            definition.states[state::class]
-                ?.transitions[event::class]
-                ?.transition(state, event)
-                ?: state
-        }
-            .distinctUntilChanged()
-            .onEach { lastValue = it }
-    }
+	private fun Flow<Event>.handleEvents(): Flow<State> {
+		var lastValue: State = initialState
+		return runningFold(initial = { lastValue }) { state, event ->
+			definition.states[state::class]
+				?.transitions[event::class]
+				?.transition(state, event)
+				?: state
+		}
+			.distinctUntilChanged()
+			.onEach { lastValue = it }
+	}
 
-    private fun Flow<State>.handleSideEffects(): Flow<State> = SideEffectsHandler(this)
+	private fun <T, R> Flow<T>.runningFold(
+		initial: () -> R,
+		operation: suspend (accumulator: R, value: T) -> R
+	): Flow<R> {
+		return flow {
+			var accumulator: R = initial()
+			emit(accumulator)
+			collect { value ->
+				accumulator = operation(accumulator, value)
+				emit(accumulator)
+			}
+		}
+	}
 
-    private inner class SideEffectsHandler(
-        private val upstream: Flow<State>,
-    ) : Flow<State> {
+	private fun Flow<State>.handleSideEffects(): Flow<State> = SideEffectsHandler(this)
 
-        @Suppress("AssignedValueIsNeverRead")
-        override suspend fun collect(collector: FlowCollector<State>) {
-            coroutineScope {
-                var sideEffectJobs = mapOf<JobKey<State>, Job>()
+	private inner class SideEffectsHandler(
+		private val upstream: Flow<State>,
+	) : Flow<State> {
 
-                upstream.collect { state ->
+		@Suppress("AssignedValueIsNeverRead")
+		override suspend fun collect(collector: FlowCollector<State>) {
+			coroutineScope {
+				var sideEffectJobs = mapOf<JobKey<State>, Job>()
 
-                    // Collect all side effects we wish to run right now
-                    val stateDefinition = definition.states[state::class]
-                    val sideEffects = buildMap {
-                        stateDefinition?.sideEffects?.forEachIndexed { index, sideEffect ->
-                            put(
-                                JobKey(state::class, index, sideEffect.key(state)),
-                                sideEffect.effect,
-                            )
-                        }
-                    }
+				upstream.collect { state ->
 
-                    // Cancel any old side effects we no longer want
-                    sideEffectJobs.minus(sideEffects.keys)
-                        .forEach { (_, job) -> job.cancelAndJoin() }
+					// Collect all side effects we wish to run right now
+					val stateDefinition = definition.states[state::class]
+					val sideEffects = buildMap {
+						stateDefinition?.sideEffects?.forEachIndexed { index, sideEffect ->
+							put(
+								JobKey(state::class, index, sideEffect.key(state)),
+								sideEffect.effect,
+							)
+						}
+					}
 
-                    // Start non-existing nested side effects, outer (parents) first
-                    sideEffectJobs = sideEffects.mapValues { (jobKey, sideEffect) ->
-                        sideEffectJobs.getOrElse(jobKey) {
-                            launch { sideEffect(this@DefaultStateMachine, state) }
-                        }
-                    }
+					// Cancel any old side effects we no longer want
+					sideEffectJobs.minus(sideEffects.keys)
+						.forEach { (_, job) -> job.cancelAndJoin() }
 
-                    // Continue the flow like nothing happened :)
-                    collector.emit(state)
-                }
-            }
-        }
+					// Start non-existing nested side effects, outer (parents) first
+					sideEffectJobs = sideEffects.mapValues { (jobKey, sideEffect) ->
+						sideEffectJobs.getOrElse(jobKey) {
+							launch { sideEffect(this@DefaultStateMachine, state) }
+						}
+					}
 
-    }
+					// Continue the flow like nothing happened :)
+					collector.emit(state)
+				}
+			}
+		}
 
-    private data class JobKey<State : Any>(
-        val clazz: KClass<out State>,
-        val index: Int,
-        val key: Any,
-    )
+	}
+
+	private data class JobKey<State : Any>(
+		val clazz: KClass<out State>,
+		val index: Int,
+		val key: Any,
+	)
 
 }
