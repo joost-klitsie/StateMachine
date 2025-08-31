@@ -40,15 +40,15 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 	}
 
 	private fun Flow<Event>.handleEvents(): Flow<State> {
-		var lastValue: State = initialState
-		return runningFold(initial = { lastValue }) { state, event ->
+		var lastState: State = initialState
+		return runningFold(initial = { lastState }) { state, event ->
 			definition.states[state::class]
 				?.transitions[event::class]
 				?.transition(state, event)
 				?: state
 		}
 			.distinctUntilChanged()
-			.onEach { lastValue = it }
+			.onEach { lastState = it }
 	}
 
 	private fun <T, R> Flow<T>.runningFold(
