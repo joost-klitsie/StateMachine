@@ -23,7 +23,7 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 	private val events = Channel<Event>()
 
 	override val state by lazy {
-		var lastValue: State = initialState
+		var lastState: State = initialState
 		events.receiveAsFlow()
 			.runningFold(initial = { initialState }) { state, event ->
 				definition.states[state::class]
@@ -31,7 +31,7 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 					?.transition(state, event)
 					?: state
 			}
-			.onEach { lastValue = it }
+			.onEach { lastState = it }
 			.stateIn(
 				scope = scope,
 				started = started,
