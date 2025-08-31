@@ -40,16 +40,33 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 		}
 	}
 
-	@Suppress("AssignedValueIsNeverRead")
 	private fun Flow<Event>.handleEvents(): Flow<State> {
 		var lastValue: State = initialState
-		return runningFold(lastValue) { state, event ->
+		return runningFold(initial = { lastValue }) { state, event ->
 			state.getSelfAndAncestors()
 				.firstNotNullOfOrNull { definition -> definition.transitions[event::class] }
 				?.transition(state, event)
 				?: state
 		}
 			.onEach { lastValue = it }
+	}
+
+	/**
+	 * Same as runningFold, but we can pass the initial state inside a lambda. This will help us when the collection
+	 * is cancelled and restarted, to make sure we continue where we left off, instead of resetting totally.
+	 */
+	private fun <T, R> Flow<T>.runningFold(
+		initial: () -> R,
+		operation: suspend (accumulator: R, value: T) -> R
+	): Flow<R> {
+		return flow {
+			var accumulator: R = initial()
+			emit(accumulator)
+			collect { value ->
+				accumulator = operation(accumulator, value)
+				emit(accumulator)
+			}
+		}
 	}
 
 	/**
