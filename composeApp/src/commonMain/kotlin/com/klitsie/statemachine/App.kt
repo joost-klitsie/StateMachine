@@ -13,14 +13,14 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App() {
 	MaterialTheme {
-        FormScreen(
-            viewModel = viewModel {
-                // We don't have dependency injection, but this will do the trick :)
-                FormViewModel(
-                    fetchFormDataUseCase = DefaultFetchFormDataUseCase(),
-                    saveFormDataUseCase = DefaultSaveFormDataUseCase(),
-                )
-            },
-        )
+		FormScreen(
+			viewModel = viewModel {
+				// We don't have dependency injection, but this will do the trick :)
+				FormViewModel(
+					fetchFormDataUseCase = DefaultFetchFormDataUseCase(),
+					saveFormDataUseCase = DefaultSaveFormDataUseCase(),
+				)
+			},
+		)
 	}
 }
