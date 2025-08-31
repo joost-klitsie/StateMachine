@@ -25,7 +25,7 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 	override val state by lazy {
 		var lastValue: State = initialState
 		events.receiveAsFlow()
-			.runningFold(initialState) { state, event ->
+			.runningFold(initial = { initialState }) { state, event ->
 				definition.states[state::class]
 					?.transitions[event::class]
 					?.transition(state, event)
@@ -42,6 +42,20 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 	override fun onEvent(event: Event) {
 		scope.launch {
 			events.send(event)
+		}
+	}
+
+	private fun <T, R> Flow<T>.runningFold(
+		initial: () -> R,
+		operation: suspend (accumulator: R, value: T) -> R
+	): Flow<R> {
+		return flow {
+			var accumulator: R = initial()
+			emit(accumulator)
+			collect { value ->
+				accumulator = operation(accumulator, value)
+				emit(accumulator)
+			}
 		}
 	}
 
