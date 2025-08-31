@@ -7,19 +7,19 @@ import kotlin.time.Duration.Companion.seconds
 
 fun interface SaveFormDataUseCase {
 
-    suspend fun run(newValue: String): Result<Unit>
+	suspend fun run(newValue: String): Result<Unit>
 
 }
 
 internal class DefaultSaveFormDataUseCase : SaveFormDataUseCase {
 
-    override suspend fun run(newValue: String): Result<Unit> {
-        return if (newValue.isNotEmpty()) {
-            delay(1.seconds)
-            success(Unit)
-        } else {
-            failure(Throwable("Test exception"))
-        }
-    }
+	override suspend fun run(newValue: String): Result<Unit> {
+		return if (newValue.isBlank()) {
+			failure(Throwable("Field cannot be blank!"))
+		} else {
+			delay(1.seconds)
+			success(Unit)
+		}
+	}
 
 }

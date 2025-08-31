@@ -8,10 +8,11 @@ The demo shows that you can control the following flow:
 3. Save the data with input validation (not empty)
 4. Show the success screen
 
-Compared to the previous solution, we now rely on side effects to trigger loading/saving, fire events and transition to
-a new state
+Compared to the previous solution, we now have a cleaner tree with nested states, which provides better options to map
+our raw data to a view state and we can reset the machine from everywhere! Aside from that, we also added some logging
+to show what state we show right now.
 
-<img src="docs/state_machine_side_effect_ez-gif.gif" width="250"/>
+<img src="docs/demo_with_nested_states-ezgif.gif" width="250"/>
 
 This is a Kotlin Multiplatform project targeting Android, Web, Desktop (JVM).
 
