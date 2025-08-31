@@ -10,23 +10,23 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class FormViewModel(
-    private val fetchFormDataUseCase: FetchFormDataUseCase,
-    private val saveFormDataUseCase: SaveFormDataUseCase,
+	private val fetchFormDataUseCase: FetchFormDataUseCase,
+	private val saveFormDataUseCase: SaveFormDataUseCase,
 ) : ViewModel() {
 
 	private val formStateMachine = stateMachine<FormState, FormEvent>(
-        scope = viewModelScope,
-        initialState = FormState.LoadingFormData(simulateLoadingFailure = true),
+		scope = viewModelScope,
+		initialState = FormState.LoadingFormData(simulateLoadingFailure = true),
 	) {
 		state<FormState.LoadingFormData> {
-            sideEffect { state ->
-                fetchFormDataUseCase.run(simulateFailure = state.simulateLoadingFailure)
-                    .fold(
-                        onSuccess = FormEvent::LoadingSuccess,
-                        onFailure = FormEvent::Failure,
-                    )
-                    .also(::onEvent)
-            }
+			sideEffect { state ->
+				fetchFormDataUseCase.run(simulateFailure = state.simulateLoadingFailure)
+					.fold(
+						onSuccess = FormEvent::LoadingSuccess,
+						onFailure = FormEvent::Failure,
+					)
+					.also(::onEvent)
+			}
 			onEvent<FormEvent.LoadingSuccess> { _, event ->
 				FormState.FormLoaded(event.value)
 			}
@@ -36,7 +36,7 @@ class FormViewModel(
 		}
 		state<FormState.FormLoadingFailure> {
 			onEvent<FormEvent.Retry> { _, _ ->
-                FormState.LoadingFormData()
+				FormState.LoadingFormData()
 			}
 		}
 		state<FormState.FormLoaded> {
@@ -48,14 +48,14 @@ class FormViewModel(
 			}
 		}
 		state<FormState.SavingForm> {
-            sideEffect { state ->
-                saveFormDataUseCase.run(state.value)
-                    .fold(
-                        onSuccess = { FormEvent.SavingSuccess },
-                        onFailure = FormEvent::Failure,
-                    )
-                    .also(::onEvent)
-            }
+			sideEffect { state ->
+				saveFormDataUseCase.run(state.value)
+					.fold(
+						onSuccess = { FormEvent.SavingSuccess },
+						onFailure = FormEvent::Failure,
+					)
+					.also(::onEvent)
+			}
 			onEvent<FormEvent.SavingSuccess> { _, _ ->
 				FormState.Success
 			}
@@ -65,22 +65,22 @@ class FormViewModel(
 		}
 		state<FormState.Success> {
 			onEvent<FormEvent.Reset> { _, _ ->
-                FormState.LoadingFormData(simulateLoadingFailure = true)
+				FormState.LoadingFormData(simulateLoadingFailure = true)
 			}
 		}
 		state<FormState.SavingFailure> {
 			onEvent<FormEvent.Save> { state, _ ->
 				FormState.SavingForm(state.value)
 			}
-            onEvent<FormEvent.Update> { _, event ->
-                FormState.FormLoaded(event.value)
+			onEvent<FormEvent.Update> { _, event ->
+				FormState.FormLoaded(event.value)
 			}
 		}
 	}
 
 	val viewState = formStateMachine.state.map { state ->
 		when (state) {
-            is FormState.LoadingFormData -> FormViewState.Loading
+			is FormState.LoadingFormData -> FormViewState.Loading
 			is FormState.FormLoadingFailure -> FormViewState.Failure
 			is FormState.FormLoaded -> FormViewState.FormInput(
 				value = state.value,
@@ -93,7 +93,7 @@ class FormViewModel(
 
 			is FormState.SavingFailure -> FormViewState.FormInput(
 				value = state.value,
-                inputErrorMessage = "Field cannot be blank!",
+				inputErrorMessage = "Field cannot be blank!",
 			)
 
 			FormState.Success -> FormViewState.Success

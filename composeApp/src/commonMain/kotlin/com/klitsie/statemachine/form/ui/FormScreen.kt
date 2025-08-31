@@ -29,7 +29,7 @@ fun FormScreen(
 			transitionSpec = { fadeIn() togetherWith fadeOut() },
 		) { state ->
 			when (state) {
-                FormViewState.Loading -> FormLoadingScreen()
+				FormViewState.Loading -> FormLoadingScreen()
 
 				FormViewState.Failure -> FormLoadingFailureScreen(
 					onRetry = { viewModel.onEvent(FormEvent.Retry) },
