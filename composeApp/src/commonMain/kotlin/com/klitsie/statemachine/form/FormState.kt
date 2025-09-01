@@ -25,6 +25,6 @@ sealed interface FormEvent {
 	data object SavingSuccess : FormEvent
 	data object Save : FormEvent
 	data object ConsumeFailure : FormEvent
-	data object Reset: FormEvent
+	data object Reset : FormEvent
 
 }

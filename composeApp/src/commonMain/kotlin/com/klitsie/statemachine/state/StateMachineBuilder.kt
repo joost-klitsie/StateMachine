@@ -1,7 +1,6 @@
 package com.klitsie.statemachine.state
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlin.reflect.KClass
 
@@ -61,4 +60,3 @@ class StateMachineBuilder<State : Any, Event : Any> {
 	}
 
 }
-

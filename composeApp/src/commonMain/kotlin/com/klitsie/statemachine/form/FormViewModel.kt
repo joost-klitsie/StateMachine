@@ -3,7 +3,6 @@ package com.klitsie.statemachine.form
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.klitsie.statemachine.state.stateMachine
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -11,7 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 class FormViewModel : ViewModel() {
 
 	private val formStateMachine = stateMachine<FormState, FormEvent>(
-		scope = MainScope(),
+		scope = viewModelScope,
 		initialState = FormState.LoadingFormData,
 	) {
 		state<FormState.LoadingFormData> {
