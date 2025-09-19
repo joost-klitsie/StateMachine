@@ -122,4 +122,3 @@ class StateMachineBuilder<State : Any, CurrentState : State, Event : Any>(
 	}
 
 }
-
