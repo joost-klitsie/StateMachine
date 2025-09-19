@@ -4,19 +4,22 @@ This is the initial branch, make sure to check out all the other branches as wel
 This is the list of articles:
 
 * [Model View State Machine: MVS](https://proandroiddev.com/model-view-state-machine-mvs-7dc371275b60)
-* [MVS series: Building the State Machine](https://proandroiddev.com/mvs-series-building-the-state-machine-104e051c1497) <--
-  you are here
-* MVS series: Implementing side effects (Coming soon)
+* [MVS series: Building the State Machine](https://proandroiddev.com/mvs-series-building-the-state-machine-104e051c1497)
+* MVS series: Implementing side effects (Coming soon) <-- you are here
 * MVS series: Creating nested states (Coming soon)
 * MVS series: State Machine usage and reusable patterns (Coming soon)
 
 The demo shows that you can control the following flow:
-1. Load form data, with error handling
+
+1. Load form data, first time with an error we have to handle
 2. Manipulate data
-3. Save the data with again proper error handling
+3. Save the data with input validation (not empty)
 4. Show the success screen
 
-<img src="docs/state_machine_ez-gif.gif" width="250"/>
+Compared to the previous solution, we now rely on side effects to trigger loading/saving, fire events and transition to
+a new state
+
+<img src="docs/state_machine_side_effect_ez-gif.gif" width="250"/>
 
 This is a Kotlin Multiplatform project targeting Android, Web, Desktop (JVM).
 

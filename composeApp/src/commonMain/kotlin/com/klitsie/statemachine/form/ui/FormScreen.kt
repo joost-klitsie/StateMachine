@@ -29,10 +29,7 @@ fun FormScreen(
 			transitionSpec = { fadeIn() togetherWith fadeOut() },
 		) { state ->
 			when (state) {
-				FormViewState.Loading -> FormLoadingScreen(
-					onSuccess = { viewModel.onEvent(FormEvent.LoadingSuccess(it)) },
-					onFailure = { viewModel.onEvent(FormEvent.Failure(it)) },
-				)
+				FormViewState.Loading -> FormLoadingScreen()
 
 				FormViewState.Failure -> FormLoadingFailureScreen(
 					onRetry = { viewModel.onEvent(FormEvent.Retry) },
@@ -42,9 +39,6 @@ fun FormScreen(
 					state = state,
 					onValueChanged = { viewModel.onEvent(FormEvent.Update(it)) },
 					onSave = { viewModel.onEvent(FormEvent.Save) },
-					onConsumeFailure = { viewModel.onEvent(FormEvent.ConsumeFailure) },
-					onSuccess = { viewModel.onEvent(FormEvent.SavingSuccess) },
-					onFailure = { viewModel.onEvent(FormEvent.Failure(it)) },
 				)
 
 				FormViewState.Success -> FormInputSuccessScreen(

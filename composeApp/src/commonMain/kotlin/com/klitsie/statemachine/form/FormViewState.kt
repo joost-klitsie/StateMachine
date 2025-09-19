@@ -6,7 +6,7 @@ sealed interface FormViewState {
 	data object Failure : FormViewState
 	data class FormInput(
 		val value: String,
-		val showErrorDialog: Boolean = false,
+		val inputErrorMessage: String? = null,
 		val showLoading: Boolean = false,
 	) : FormViewState
 

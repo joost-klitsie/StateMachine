@@ -1,9 +1,9 @@
 package com.klitsie.statemachine.state
 
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
 
 interface StateMachine<out State : Any, in Event : Any> {
 
@@ -23,15 +23,9 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 	private val events = Channel<Event>()
 
 	override val state by lazy {
-		var lastState: State = initialState
 		events.receiveAsFlow()
-			.runningFold(initial = { initialState }) { state, event ->
-				definition.states[state::class]
-					?.transitions[event::class]
-					?.transition(state, event)
-					?: state
-			}
-			.onEach { lastState = it }
+			.handleEvents()
+			.handleSideEffects()
 			.stateIn(
 				scope = scope,
 				started = started,
@@ -43,6 +37,18 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 		scope.launch {
 			events.send(event)
 		}
+	}
+
+	private fun Flow<Event>.handleEvents(): Flow<State> {
+		var lastState: State = initialState
+		return runningFold(initial = { lastState }) { state, event ->
+			definition.states[state::class]
+				?.transitions[event::class]
+				?.transition(state, event)
+				?: state
+		}
+			.distinctUntilChanged()
+			.onEach { lastState = it }
 	}
 
 	private fun <T, R> Flow<T>.runningFold(
@@ -58,5 +64,54 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 			}
 		}
 	}
+
+	private fun Flow<State>.handleSideEffects(): Flow<State> = SideEffectsHandler(this)
+
+	private inner class SideEffectsHandler(
+		private val upstream: Flow<State>,
+	) : Flow<State> {
+
+		@Suppress("AssignedValueIsNeverRead")
+		override suspend fun collect(collector: FlowCollector<State>) {
+			coroutineScope {
+				var sideEffectJobs = mapOf<JobKey<State>, Job>()
+
+				upstream.collect { state ->
+
+					// Collect all side effects we wish to run right now
+					val stateDefinition = definition.states[state::class]
+					val sideEffects = buildMap {
+						stateDefinition?.sideEffects?.forEachIndexed { index, sideEffect ->
+							put(
+								JobKey(state::class, index, sideEffect.key(state)),
+								sideEffect.effect,
+							)
+						}
+					}
+
+					// Cancel any old side effects we no longer want
+					sideEffectJobs.minus(sideEffects.keys)
+						.forEach { (_, job) -> job.cancelAndJoin() }
+
+					// Start non-existing nested side effects, outer (parents) first
+					sideEffectJobs = sideEffects.mapValues { (jobKey, sideEffect) ->
+						sideEffectJobs.getOrElse(jobKey) {
+							launch { sideEffect(this@DefaultStateMachine, state) }
+						}
+					}
+
+					// Continue the flow like nothing happened :)
+					collector.emit(state)
+				}
+			}
+		}
+
+	}
+
+	private data class JobKey<State : Any>(
+		val clazz: KClass<out State>,
+		val index: Int,
+		val key: Any,
+	)
 
 }
