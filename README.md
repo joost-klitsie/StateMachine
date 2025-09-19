@@ -4,9 +4,8 @@ This is the initial branch, make sure to check out all the other branches as wel
 This is the list of articles:
 
 * [Model View State Machine: MVS](https://proandroiddev.com/model-view-state-machine-mvs-7dc371275b60)
-* [MVS series: Building the State Machine](https://proandroiddev.com/mvs-series-building-the-state-machine-104e051c1497) <--
-  you are here
-* MVS series: Implementing side effects (Coming soon)
+* [MVS series: Building the State Machine](https://proandroiddev.com/mvs-series-building-the-state-machine-104e051c1497)
+* MVS series: Implementing side effects (Coming soon) <-- you are here
 * MVS series: Creating nested states (Coming soon)
 * MVS series: State Machine usage and reusable patterns (Coming soon)
 
