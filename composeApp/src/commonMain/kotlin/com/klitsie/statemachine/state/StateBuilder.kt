@@ -29,7 +29,6 @@ class StateBuilder<State : Any, CurrentState : State, Event : Any>(
 			parent = parent,
 			sideEffects = buildSideEffects(),
 			transitions = buildTransitions(),
-			sideEffects = sideEffects,
 		)
 	}
 
