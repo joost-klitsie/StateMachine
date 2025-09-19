@@ -1,5 +1,14 @@
 This is an example project showing off a state machine with a simple UI to show off its capabilities.
-The link to the supporting article will arrive soon!
+This is the initial branch, make sure to check out all the other branches as well!
+
+This is the list of articles:
+
+* [Model View State Machine: MVS](https://proandroiddev.com/model-view-state-machine-mvs-7dc371275b60)
+* [MVS series: Building the State Machine](https://proandroiddev.com/mvs-series-building-the-state-machine-104e051c1497) <--
+  you are here
+* MVS series: Implementing side effects (Coming soon)
+* MVS series: Creating nested states (Coming soon)
+* MVS series: State Machine usage and reusable patterns (Coming soon)
 
 The demo shows that you can control the following flow:
 
@@ -26,4 +35,5 @@ Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-mu
 [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
 [Kotlin/Wasm](https://kotl.in/wasm/)…
 
-You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
+You can open the desktop app with hot reload by hitting the "play" button in the gutter inside desktop's Main.kt file.
+You can also open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.

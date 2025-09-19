@@ -60,4 +60,3 @@ class StateMachineBuilder<State : Any, Event : Any> {
 	}
 
 }
-
