@@ -6,24 +6,24 @@ import kotlinx.coroutines.flow.*
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-interface StateMachine<out State : Any, in Event : Any> : StateFlow<State> {
+interface StateMachine<out State : Any, Effect : Any, in Event : Any> : StateFlow<State> {
 
-	val state: StateFlow<State>
+	val effect: Flow<Effect>
 
-	fun onEvent(event: Event)
+	fun send(event: Event)
 
 }
 
-internal class DefaultStateMachine<out State : Any, in Event : Any>(
+internal class DefaultStateMachine<out State : Any, Effect : Any, in Event : Any>(
 	private val scope: CoroutineScope,
 	private val initialState: State,
 	private val started: SharingStarted = SharingStarted.WhileSubscribed(5000),
-	private val definition: StateMachineDefinition<State, State, Event>,
-) : StateMachine<State, Event> {
+	private val definition: StateMachineDefinition<State, State, Effect, Event>,
+) : StateMachine<State, Effect, Event>, EffectHandler<State, Effect> {
 
 	private val events = Channel<Event>()
 
-	override val state by lazy {
+	private val state by lazy {
 		events.receiveAsFlow()
 			.handleEvents()
 			.distinctUntilChanged()
@@ -35,13 +35,23 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 			)
 	}
 
+	private val _effect = Channel<Effect>()
+
+	override val effect: Flow<Effect> = _effect.receiveAsFlow()
+
 	override val value: State by state::value
 	override suspend fun collect(collector: FlowCollector<State>) = state.collect(collector)
 	override val replayCache: List<State> by state::replayCache
 
-	override fun onEvent(event: Event) {
+	override fun send(event: Event) {
 		scope.launch {
 			events.send(event)
+		}
+	}
+
+	override fun trigger(effect: Effect) = value.also {
+		scope.launch {
+			_effect.send(effect)
 		}
 	}
 
@@ -50,7 +60,7 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 		return runningFold(initial = { lastState }) { state, event ->
 			state.getSelfAndAncestors()
 				.firstNotNullOfOrNull { definition -> definition.transitions[event::class] }
-				?.transition(state, event)
+				?.transition(this@DefaultStateMachine, state, event)
 				?: state
 		}
 			.onEach { lastState = it }
@@ -77,7 +87,7 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 	/**
 	 * Collect the definition of the state and all nested parents
 	 */
-	private fun State.getSelfAndAncestors(): List<StateDefinition<State, in State, Event>> = buildList {
+	private fun State.getSelfAndAncestors(): List<StateDefinition<State, in State, Effect, Event>> = buildList {
 		definition.states[this@getSelfAndAncestors::class]?.let { state ->
 			add(state)
 			var clazz = state.parent

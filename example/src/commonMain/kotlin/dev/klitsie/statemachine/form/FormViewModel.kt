@@ -14,7 +14,7 @@ class FormViewModel(
 	private val saveFormDataUseCase: SaveFormDataUseCase,
 ) : ViewModel() {
 
-	private val formStateMachine = stateMachine<FormState, FormEvent>(
+	private val formStateMachine = stateMachine<FormState, Nothing, FormEvent>(
 		scope = viewModelScope,
 		initialState = FormState.LoadingFormData(simulateLoadingFailure = true),
 	) {
@@ -83,7 +83,7 @@ class FormViewModel(
 		state<FormState.Success>()
 	}
 
-	val viewState = formStateMachine.state.map { state ->
+	val viewState = formStateMachine.map { state ->
 		when (state) {
 			is FormState.LoadingFormData -> FormViewState.Loading
 			is FormState.FormLoadingFailure -> FormViewState.Failure
@@ -102,7 +102,7 @@ class FormViewModel(
 	)
 
 	fun onEvent(formEvent: FormEvent) {
-		formStateMachine.onEvent(formEvent)
+		formStateMachine.send(formEvent)
 	}
 
 }

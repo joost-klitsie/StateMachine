@@ -14,8 +14,6 @@ sealed interface NestedExampleState {
 
 	}
 
-	data object CloseScreen : NestedExampleState
-
 	sealed interface LoadingFailed : NestedExampleState {
 		data object UserIsAnIdiot : LoadingFailed
 		data object UserLockedOut : LoadingFailed
@@ -24,14 +22,20 @@ sealed interface NestedExampleState {
 
 }
 
-sealed interface ExampleEvent {
+sealed interface NestedExampleEffect {
 
-	data class StartLoading(val id: String) : ExampleEvent
-	data class LoadingResult(val result: Result<String>) : ExampleEvent
-	data class UpdateName(val newValue: String) : ExampleEvent
+	data object Close : NestedExampleEffect
 
-	data object Retry : ExampleEvent
-	data object Reset : ExampleEvent
-	data object Close : ExampleEvent
+}
+
+sealed interface NestedExampleEvent {
+
+	data class StartLoading(val id: String) : NestedExampleEvent
+	data class LoadingResult(val result: Result<String>) : NestedExampleEvent
+	data class UpdateName(val newValue: String) : NestedExampleEvent
+
+	data object Retry : NestedExampleEvent
+	data object Reset : NestedExampleEvent
+	data object Close : NestedExampleEvent
 
 }

@@ -10,28 +10,28 @@ class NestedExampleViewModel(
 	private val loadUserNameWithIdUseCase: LoadUserNameWithIdUseCase = DefaultLoadUserNameWithIdUseCase(),
 ) : ViewModel() {
 
-	val stateMachine = stateMachine<NestedExampleState, ExampleEvent>(
+	val stateMachine = stateMachine<NestedExampleState, NestedExampleEffect, NestedExampleEvent>(
 		scope = viewModelScope,
 		initialState = NestedExampleState.Pending,
 	) {
-		onEvent<ExampleEvent.Reset> { _, _ ->
+		onEvent<NestedExampleEvent.Reset> { _, _ ->
 			NestedExampleState.Pending
 		}
 		sideEffect { state ->
 			println("Current state: $state")
 		}
 		state<NestedExampleState.Pending> {
-			onEvent<ExampleEvent.StartLoading> { _, event ->
+			onEvent<NestedExampleEvent.StartLoading> { _, event ->
 				NestedExampleState.Loading(id = event.id, shouldFail = true)
 			}
 		}
 		state<NestedExampleState.Loading> {
 			sideEffect { state ->
 				loadUserNameWithIdUseCase.run(id = state.id, shouldFail = state.shouldFail)
-					.let(ExampleEvent::LoadingResult)
-					.also(::onEvent)
+					.let(NestedExampleEvent::LoadingResult)
+					.also(::send)
 			}
-			onEvent<ExampleEvent.LoadingResult> { state, event ->
+			onEvent<NestedExampleEvent.LoadingResult> { state, event ->
 				event.result.fold(
 					onSuccess = { value ->
 						when (value) {
@@ -50,7 +50,7 @@ class NestedExampleViewModel(
 			}
 		}
 		nestedState<NestedExampleState.InputName> {
-			onEvent<ExampleEvent.UpdateName> { _, event ->
+			onEvent<NestedExampleEvent.UpdateName> { _, event ->
 				when (val value = event.newValue) {
 					"" -> NestedExampleState.InputName.Pending(username = value)
 					else -> NestedExampleState.InputName.Confirm(username = value)
@@ -62,11 +62,11 @@ class NestedExampleViewModel(
 		}
 
 		nestedState<NestedExampleState.LoadingFailed> {
-			onEvent<ExampleEvent.Close> { _, _ ->
-				NestedExampleState.CloseScreen
+			onEvent<NestedExampleEvent.Close> { _, _ ->
+				trigger(NestedExampleEffect.Close)
 			}
 			state<NestedExampleState.LoadingFailed.Retryable> {
-				onEvent<ExampleEvent.Retry> { state, _ ->
+				onEvent<NestedExampleEvent.Retry> { state, _ ->
 					NestedExampleState.Loading(id = state.id, shouldFail = false)
 				}
 			}
