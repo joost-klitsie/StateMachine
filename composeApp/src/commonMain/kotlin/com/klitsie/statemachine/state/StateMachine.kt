@@ -17,7 +17,7 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 	private val scope: CoroutineScope,
 	private val initialState: State,
 	private val started: SharingStarted = SharingStarted.WhileSubscribed(5000),
-	private val definition: StateMachineDefinition<State, Event>,
+	private val definition: StateMachineDefinition<State, State, Event>,
 ) : StateMachine<State, Event> {
 
 	private val events = Channel<Event>()
@@ -25,6 +25,7 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 	override val state by lazy {
 		events.receiveAsFlow()
 			.handleEvents()
+			.distinctUntilChanged()
 			.handleSideEffects()
 			.stateIn(
 				scope = scope,
@@ -42,15 +43,18 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 	private fun Flow<Event>.handleEvents(): Flow<State> {
 		var lastState: State = initialState
 		return runningFold(initial = { lastState }) { state, event ->
-			definition.states[state::class]
-				?.transitions[event::class]
+			state.getSelfAndAncestors()
+				.firstNotNullOfOrNull { definition -> definition.transitions[event::class] }
 				?.transition(state, event)
 				?: state
 		}
-			.distinctUntilChanged()
 			.onEach { lastState = it }
 	}
 
+	/**
+	 * Same as runningFold, but we can pass the initial state inside a lambda. This will help us when the collection
+	 * is cancelled and restarted, to make sure we continue where we left off, instead of resetting totally.
+	 */
 	private fun <T, R> Flow<T>.runningFold(
 		initial: () -> R,
 		operation: suspend (accumulator: R, value: T) -> R
@@ -63,6 +67,25 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 				emit(accumulator)
 			}
 		}
+	}
+
+	/**
+	 * Collect the definition of the state and all nested parents
+	 */
+	private fun State.getSelfAndAncestors(): List<StateDefinition<State, in State, Event>> = buildList {
+		definition.states[this@getSelfAndAncestors::class]?.let { state ->
+			add(state)
+			var clazz = state.parent
+			while (clazz != null) {
+				clazz = definition.nestedStates[clazz]?.let { nestedState ->
+					add(nestedState.self)
+					nestedState.self.parent
+				}
+			}
+		}
+
+		// Finally add the base definition of the state machine to the list
+		add(definition.self)
 	}
 
 	private fun Flow<State>.handleSideEffects(): Flow<State> = SideEffectsHandler(this)
@@ -79,21 +102,32 @@ internal class DefaultStateMachine<out State : Any, in Event : Any>(
 				upstream.collect { state ->
 
 					// Collect all side effects we wish to run right now
-					val stateDefinition = definition.states[state::class]
+					// We will make sure these are ordered root first and child last
 					val sideEffects = buildMap {
-						stateDefinition?.sideEffects?.forEachIndexed { index, sideEffect ->
-							put(
-								JobKey(state::class, index, sideEffect.key(state)),
-								sideEffect.effect,
-							)
+						state.getSelfAndAncestors().reversed().forEach { stateDefinition ->
+							stateDefinition.sideEffects.forEachIndexed { index, sideEffect ->
+								put(
+									JobKey(stateDefinition.clazz, index, sideEffect.key(state)),
+									sideEffect.effect,
+								)
+							}
 						}
 					}
 
-					// Cancel any old side effects we no longer want
+					// Cancel any old nested side effects, youngest jobs first
+					// In this case we need to reverse the entries of the existing
+					// Side effect jobs because younger side effects are added to the
+					// end of the map
 					sideEffectJobs.minus(sideEffects.keys)
-						.forEach { (_, job) -> job.cancelAndJoin() }
+						.values
+						.reversed()
+						.forEach { it.cancelAndJoin() }
 
 					// Start non-existing nested side effects, outer (parents) first
+					// We store these in the sideEffectJobs. Our sideEffects
+					// Are already correctly ordered, so here we can use a simple
+					// mapValues operation to either return an existing job or
+					// run a new one in the right order
 					sideEffectJobs = sideEffects.mapValues { (jobKey, sideEffect) ->
 						sideEffectJobs.getOrElse(jobKey) {
 							launch { sideEffect(this@DefaultStateMachine, state) }

@@ -14,11 +14,11 @@ fun interface SaveFormDataUseCase {
 internal class DefaultSaveFormDataUseCase : SaveFormDataUseCase {
 
 	override suspend fun run(newValue: String): Result<Unit> {
-		return if (newValue.isNotEmpty()) {
+		return if (newValue.isBlank()) {
+			failure(Throwable("Field cannot be blank!"))
+		} else {
 			delay(1.seconds)
 			success(Unit)
-		} else {
-			failure(Throwable("Test exception"))
 		}
 	}
 

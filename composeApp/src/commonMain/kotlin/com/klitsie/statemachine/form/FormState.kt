@@ -8,12 +8,17 @@ sealed interface FormState {
 
 	data class FormLoadingFailure(val error: Throwable) : FormState
 
-	data class FormLoaded(val value: String) : FormState
-	data class SavingForm(val value: String) : FormState
-	data class SavingFailure(
-		val value: String,
-		val error: Throwable,
-	) : FormState
+	sealed interface WithData : FormState {
+		val value: String
+
+		data class PendingInput(override val value: String) : WithData
+		data class SavingForm(override val value: String) : WithData
+		data class SavingFailure(
+			override val value: String,
+			val error: Throwable,
+		) : WithData
+
+	}
 
 	data object Success : FormState
 
