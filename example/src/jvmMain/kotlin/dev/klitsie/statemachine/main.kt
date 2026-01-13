@@ -8,6 +8,6 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "StateMachine",
     ) {
-        App(onClose = {})
+        App(onClose = { println("onClose!") })
     }
 }

@@ -2,28 +2,28 @@ package dev.klitsie.statemachine
 
 import kotlin.reflect.KClass
 
-data class StateDefinition<State : Any, CurrentState : State, Event : Any>(
+data class StateDefinition<State : Any, CurrentState : State, Effect : Any, Event : Any>(
 	val clazz: KClass<out State>,
 	val parent: KClass<out State>?,
 	val sideEffects: List<SideEffect<State, CurrentState, Event>>,
-	val transitions: Map<KClass<out Event>, StateTransition<State, CurrentState, Event>>,
+	val transitions: Map<KClass<out Event>, StateTransition<State, CurrentState, Effect, Event>>,
 )
 
 @StateDsl
-class StateBuilder<State : Any, CurrentState : State, Event : Any>(
+class StateBuilder<State : Any, CurrentState : State, Effect : Any, Event : Any>(
 	private val clazz: KClass<CurrentState>,
 	private val parent: KClass<out State>,
 ) :
 	SideEffectBuilder<State, CurrentState, Event> by DefaultSideEffectBuilder(),
-	TransitionBuilder<State, CurrentState, Event> by DefaultTransitionBuilder() {
+	TransitionBuilder<State, CurrentState, Effect, Event> by DefaultTransitionBuilder() {
 
 	inline fun <reified E : Event> onEvent(
-		noinline transition: (CurrentState, E) -> State,
+		noinline transition: EffectHandler<CurrentState, Effect>.(CurrentState, E) -> State,
 	) {
 		onEvent(E::class, transition)
 	}
 
-	fun build(): StateDefinition<State, CurrentState, Event> {
+	fun build(): StateDefinition<State, CurrentState, Effect, Event> {
 		return StateDefinition(
 			clazz = clazz,
 			parent = parent,

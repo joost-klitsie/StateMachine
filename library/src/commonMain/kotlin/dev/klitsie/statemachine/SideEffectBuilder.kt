@@ -5,7 +5,7 @@ interface SideEffectBuilder<State : Any, CurrentState : State, Event : Any> {
 
 	fun sideEffect(
 		key: (CurrentState) -> Any = { it },
-		effect: suspend StateMachine<State, Event>.(CurrentState) -> Unit,
+		effect: suspend StateMachine<State, *, Event>.(CurrentState) -> Unit,
 	)
 
 	fun buildSideEffects(): List<SideEffect<State, CurrentState, Event>>
@@ -19,7 +19,7 @@ internal class DefaultSideEffectBuilder<State : Any, CurrentState : State, Event
 
 	override fun sideEffect(
 		key: (CurrentState) -> Any,
-		effect: suspend StateMachine<State, Event>.(CurrentState) -> Unit,
+		effect: suspend StateMachine<State, *, Event>.(CurrentState) -> Unit,
 	) {
 		sideEffects += SideEffect(key, effect)
 	}
@@ -30,5 +30,5 @@ internal class DefaultSideEffectBuilder<State : Any, CurrentState : State, Event
 
 data class SideEffect<State : Any, in CurrentState : State, out Event : Any>(
 	val key: (CurrentState) -> Any,
-	val effect: suspend StateMachine<State, Event>.(CurrentState) -> Unit,
+	val effect: suspend StateMachine<State, *, Event>.(CurrentState) -> Unit,
 )
