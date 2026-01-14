@@ -34,6 +34,7 @@ jobs:
           else
             echo "color=red" >> $GITHUB_OUTPUT
           fi
+
       - name: Update Badge Gist
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
