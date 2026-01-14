@@ -2,6 +2,7 @@
 [![Kotlin](https://img.shields.io/badge/kotlin-2.2.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20JS%20%7C%20WasmJS-lightgrey.svg)](#)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/joost-klitsie/985b3f7fb1939b630ec7c6a06e77434b/raw/coverage.json)
 
 # **Kotlin Multiplatform State Machine**
 

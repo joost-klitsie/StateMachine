@@ -9,6 +9,7 @@ plugins {
 	alias(libs.plugins.androidMultiplatformLibrary)
 	id("maven-publish")
 	alias(libs.plugins.vanniktech.mavenPublish)
+	alias(libs.plugins.kotlinxKover)
 }
 
 group = "dev.klitsie.statemachine"
@@ -67,6 +68,7 @@ kotlin {
 		}
 		commonTest.dependencies {
 			implementation(libs.kotlin.test)
+			implementation(libs.kotlinx.coroutinesTest)
 		}
 		jvmMain.dependencies {
 			implementation(libs.kotlinx.coroutinesSwing)
