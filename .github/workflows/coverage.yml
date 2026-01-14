@@ -22,8 +22,18 @@ jobs:
         id: extract_coverage
         run: |
           PERCENTAGE=$(grep "line coverage" library/build/kover/coverage.txt | grep -oP '\d+(?=%)')
-          echo "percent=${PERCENTAGE:-0}" >> $GITHUB_OUTPUT
-
+          PERCENTAGE=${PERCENTAGE:-0}
+          
+          echo "percent=$PERCENTAGE" >> $GITHUB_OUTPUT
+          
+          # Logic to determine color based on percentage
+          if [ "$PERCENTAGE" -ge 90 ]; then
+            echo "color=green" >> $GITHUB_OUTPUT
+          elif [ "$PERCENTAGE" -ge 75 ]; then
+            echo "color=yellow" >> $GITHUB_OUTPUT
+          else
+            echo "color=red" >> $GITHUB_OUTPUT
+          fi
       - name: Update Badge Gist
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
@@ -32,4 +42,4 @@ jobs:
           filename: coverage.json
           label: Coverage
           message: ${{ steps.extract_coverage.outputs.percent }}%
-          color: green
+          color: ${{ steps.extract_coverage.outputs.color }}
