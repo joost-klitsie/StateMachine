@@ -1,0 +1,37 @@
+name: Coverage
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 21
+
+      - name: Generate Report
+        run: ./gradlew library:koverXmlReport
+
+      - name: Extract Coverage
+        id: extract_coverage
+        run: |
+          # This simple regex extracts the line-rate from the XML
+          COVERAGE=$(grep -oP 'line-rate="\K[^"]+' library/build/reports/kover/report.xml | head -1)
+          PERCENTAGE=$(echo "scale=2; $COVERAGE * 100" | bc | cut -d. -f1)
+          echo "percent=$PERCENTAGE" >> $GITHUB_OUTPUT
+
+      - name: Update Badge Gist
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_TOKEN }}
+          gistID: 985b3f7fb1939b630ec7c6a06e77434b
+          filename: coverage.json
+          label: Coverage
+          message: ${{ steps.extract_coverage.outputs.percent }}%
+          color: green

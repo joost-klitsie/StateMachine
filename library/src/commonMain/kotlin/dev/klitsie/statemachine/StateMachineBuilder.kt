@@ -17,11 +17,12 @@ inline fun <reified State : Any, Effect : Any, Event : Any> stateMachine(
 	builder = builder,
 )
 
-fun <State : Any, Effect : Any, Event : Any> stateMachine(
+@PublishedApi
+internal fun <State : Any, Effect : Any, Event : Any> stateMachine(
 	baseType: KClass<State>,
 	scope: CoroutineScope,
 	initialState: State,
-	started: SharingStarted = SharingStarted.WhileSubscribed(5000),
+	started: SharingStarted,
 	builder: StateMachineBuilder<State, State, Effect, Event>.() -> Unit,
 ): StateMachine<State, Effect, Event> {
 	val stateMachineDefinition = StateMachineBuilder<State, State, Effect, Event>(baseType, null)
@@ -61,7 +62,7 @@ class StateMachineBuilder<State : Any, CurrentState : State, Effect : Any, Event
 		private set
 
 	inline fun <reified E : Event> onEvent(
-		noinline transition: EffectHandler<CurrentState, Effect>.(CurrentState, E) -> State,
+		noinline transition: EffectHandler<CurrentState, Effect>.(state: CurrentState, event: E) -> State,
 	) {
 		onEvent(E::class, transition)
 	}

@@ -18,7 +18,7 @@ class StateBuilder<State : Any, CurrentState : State, Effect : Any, Event : Any>
 	TransitionBuilder<State, CurrentState, Effect, Event> by DefaultTransitionBuilder() {
 
 	inline fun <reified E : Event> onEvent(
-		noinline transition: EffectHandler<CurrentState, Effect>.(CurrentState, E) -> State,
+		noinline transition: EffectHandler<CurrentState, Effect>.(state: CurrentState, event: E) -> State,
 	) {
 		onEvent(E::class, transition)
 	}

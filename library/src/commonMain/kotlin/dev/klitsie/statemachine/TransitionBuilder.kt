@@ -25,7 +25,7 @@ internal class DefaultTransitionBuilder<State : Any, CurrentState : State, Effec
 
 	override fun <E : Event> onEvent(
 		eventClass: KClass<E>,
-		transition: EffectHandler<CurrentState, Effect>.(CurrentState, E) -> State,
+		transition: EffectHandler<CurrentState, Effect>.(state: CurrentState, event: E) -> State,
 	) {
 		@Suppress("UNCHECKED_CAST")
 		val stateTransition = StateTransition(transition) as StateTransition<State, CurrentState, Effect, Event>
