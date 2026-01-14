@@ -16,15 +16,13 @@ jobs:
           java-version: 21
 
       - name: Generate Report
-        run: ./gradlew library:koverXmlReport
+        run: ./gradlew library:koverPrintCoverage
 
       - name: Extract Coverage
         id: extract_coverage
         run: |
-          # This simple regex extracts the line-rate from the XML
-          COVERAGE=$(grep -oP 'line-rate="\K[^"]+' library/build/reports/kover/report.xml | head -1)
-          PERCENTAGE=$(echo "scale=2; $COVERAGE * 100" | bc | cut -d. -f1)
-          echo "percent=$PERCENTAGE" >> $GITHUB_OUTPUT
+          PERCENTAGE=$(grep "line coverage" library/build/kover/coverage.txt | grep -oP '\d+(?=%)')
+          echo "percent=${PERCENTAGE:-0}" >> $GITHUB_OUTPUT
 
       - name: Update Badge Gist
         uses: schneegans/dynamic-badges-action@v1.7.0
