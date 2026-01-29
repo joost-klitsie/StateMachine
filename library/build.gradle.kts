@@ -13,11 +13,11 @@ plugins {
 }
 
 group = "dev.klitsie.statemachine"
-version = "0.2.0"
+version = "0.3.0"
 
 kotlin {
 	androidLibrary {
-		namespace = "com.klitsie.statemachine"
+		namespace = "dev.klitsie.statemachine"
 		compileSdk = libs.versions.android.compileSdk.get().toInt()
 		minSdk = libs.versions.android.minSdk.get().toInt()
 
