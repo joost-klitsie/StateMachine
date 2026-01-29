@@ -111,7 +111,7 @@ val machine = stateMachine<QuizState, QuizEffect, QuizEvent>(
 
 		state<QuizState.InProgress.Playing> {
 			// key: Only restarts if questionId changes. 
-			// If the state changes (e.g., score updates) but ID is same, timer keeps running.
+          // If the state changes (e.g., score updates) but ID is the same, the timer keeps running.
 			sideEffect(key = { it.questionId }) {
 				delay(30.seconds)
 				send(QuizEvent.TimeOut)
@@ -121,11 +121,11 @@ val machine = stateMachine<QuizState, QuizEffect, QuizEvent>(
 				if (event.isCorrect) {
 					// Triggers a one-time event on the 'effects' flow
 					trigger(QuizEffect.PlayCorrectSound)
-					// Transitions to a new state instance with updated score
+                  // Transitions to a new state instance with an updated score
 					state.copy(score = state.score + 10)
 				} else {
+                  // trigger(..) returns the current state to skip transition
 					trigger(QuizEffect.PlayWrongSound)
-					state // Return current state to skip transition
 				}
 			}
 
@@ -149,7 +149,7 @@ lifecycleScope.launch {
 
 // Observe one-time effects
 lifecycleScope.launch {
-	machine.effects.collect { effect ->
+  machine.consumeEffects { effect ->
 		when (effect) {
 			QuizEffect.PlayCorrectSound -> audioPlayer.play("success.mp3")
 			QuizEffect.PlayWrongSound -> audioPlayer.play("error.mp3")
@@ -171,8 +171,8 @@ fun QuizScreen(
 	// Lifecycle-aware collection using the machine's StateFlow implementation
 	val state by viewModel.machine.collectAsStateWithLifecycle()
 
-	LaunchedEffect(viewModel.machine.effects) {
-		viewModel.machine.effects.collect { effect ->
+  LaunchedEffect(viewModel.machine) {
+    viewModel.machine.consumeEffects { effect ->
 			when (effect) {
 				QuizEffect.PlayCorrectSound -> audioPlayer.play("success.mp3")
 				QuizEffect.PlayWrongSound -> audioPlayer.play("error.mp3")

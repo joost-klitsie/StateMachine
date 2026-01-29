@@ -31,11 +31,9 @@ kotlin {
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(rootDirPath)
-                        add(projectDirPath)
-                    }
+                    // Serve sources to debug inside the browser
+                    static(rootDirPath)
+                    static(projectDirPath)
                 }
             }
         }
@@ -69,11 +67,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.klitsie.statemachine"
+    namespace = "dev.klitsie.statemachine.example"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.klitsie.statemachine"
+        applicationId = "dev.klitsie.statemachine.example"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -101,11 +99,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.klitsie.statemachine.MainKt"
+        mainClass = "dev.klitsie.statemachine.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.klitsie.statemachine"
+            packageName = "dev.klitsie.statemachine"
             packageVersion = "1.0.0"
         }
     }
