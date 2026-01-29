@@ -33,7 +33,7 @@ Add the dependency to your commonMain source set:
 kotlin {
 	sourceSets {
 		commonMain.dependencies {
-			implementation("dev.klitsie.statemachine:statemachine-core:0.2.0")
+          implementation("dev.klitsie.statemachine:statemachine-core:0.3.0")
 		}
 	}
 }
