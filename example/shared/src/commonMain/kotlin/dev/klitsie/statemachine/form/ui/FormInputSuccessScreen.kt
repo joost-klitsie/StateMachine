@@ -10,8 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
-import statemachine.example.generated.resources.Res
-import statemachine.example.generated.resources.compose_multiplatform
+import statemachine.example.shared.generated.resources.Res
+import statemachine.example.shared.generated.resources.compose_multiplatform
 
 @Composable
 fun FormInputSuccessScreen() {

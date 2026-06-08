@@ -35,7 +35,6 @@ sealed interface NestedExampleEvent {
 	data class UpdateName(val newValue: String) : NestedExampleEvent
 
 	data object Retry : NestedExampleEvent
-	data object Reset : NestedExampleEvent
 	data object Close : NestedExampleEvent
 
 }

@@ -1,21 +1,26 @@
 @file:Suppress("UnstableApiUsage")
 
-import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
 	alias(libs.plugins.kotlinMultiplatform)
 	alias(libs.plugins.androidMultiplatformLibrary)
-	id("maven-publish")
-	alias(libs.plugins.vanniktech.mavenPublish)
+	alias(libs.plugins.klitsie.publishing)
 	alias(libs.plugins.kotlinxKover)
 }
 
-group = "dev.klitsie.statemachine"
-version = "0.3.0"
+stateMachinePublishing {
+	artifactId = "statemachine-core"
+	name = "State Machine Core"
+	description = "A simple yet powerful state machine built on top of Kotlin Coroutines"
+}
 
 kotlin {
+	compilerOptions {
+		apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+		languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+	}
 	androidLibrary {
 		namespace = "dev.klitsie.statemachine"
 		compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -53,8 +58,7 @@ kotlin {
 		iosX64(),
 		iosArm64(),
 		iosSimulatorArm64(),
-		macosX64(),
-		macosArm64()
+		macosArm64(),
 	).forEach { iosTarget ->
 		iosTarget.binaries.framework {
 			baseName = "statemachine"
@@ -72,43 +76,6 @@ kotlin {
 		}
 		jvmMain.dependencies {
 			implementation(libs.kotlinx.coroutinesSwing)
-		}
-	}
-}
-
-mavenPublishing {
-	publishToMavenCentral()
-
-	signAllPublications()
-
-	coordinates(group.toString(), "statemachine-core", version.toString())
-
-	pom {
-		name = "State Machine"
-		description = "A simple yet powerful state machine, build on top of Kotlin Coroutines"
-		inceptionYear = "2026"
-		url = "https://github.com/joost-klitsie/StateMachine/"
-		licenses {
-			license {
-				name = "The Apache License, Version 2.0"
-				url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
-				distribution = "https://www.apache.org/licenses/LICENSE-2.0.txt"
-			}
-		}
-		developers {
-			developer {
-				id = "joost-klitsie"
-				name = "Joost klitsie"
-				url = "https://github.com/joost-klitsie"
-				email = "j.p.klitsie@gmail.com"
-				organization = "Klitsie Development"
-				organizationUrl = "https://klitsie.dev"
-			}
-		}
-		scm {
-			url = "https://github.com/joost-klitsie/StateMachine/"
-			connection = "scm:git:git://github.com/joost-klitsie/StateMachine.git"
-			developerConnection = "scm:git:ssh://git@github.com/joost-klitsie/StateMachine.git"
 		}
 	}
 }

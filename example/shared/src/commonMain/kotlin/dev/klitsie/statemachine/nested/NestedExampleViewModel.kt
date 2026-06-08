@@ -14,15 +14,10 @@ class NestedExampleViewModel(
 		scope = viewModelScope,
 		initialState = NestedExampleState.Pending,
 	) {
-		onEvent<NestedExampleEvent.Reset> { _, _ ->
-			NestedExampleState.Pending
-		}
-		sideEffect { state ->
-			println("Current state: $state")
-		}
 		state<NestedExampleState.Pending> {
 			onEvent<NestedExampleEvent.StartLoading> { _, event ->
 				NestedExampleState.Loading(id = event.id, shouldFail = true)
+
 			}
 		}
 		state<NestedExampleState.Loading> {
@@ -43,9 +38,12 @@ class NestedExampleViewModel(
 						when (it.message) {
 							"user is an idiot" -> NestedExampleState.LoadingFailed.UserIsAnIdiot
 							"user is locked out" -> NestedExampleState.LoadingFailed.UserLockedOut
-							else -> NestedExampleState.LoadingFailed.Retryable(error = it, id = state.id)
+							else -> NestedExampleState.LoadingFailed.Retryable(
+								error = it,
+								id = state.id,
+							)
 						}
-					}
+					},
 				)
 			}
 		}

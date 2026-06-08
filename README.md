@@ -1,5 +1,6 @@
 [![Maven Central](https://img.shields.io/maven-central/v/dev.klitsie.statemachine/statemachine-core)](https://central.sonatype.com/artifact/dev.klitsie.statemachine/statemachine-core)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.2.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin Library](https://img.shields.io/badge/Library-Kotlin_2.2.21-blue?logo=kotlin)](https://kotlinlang.org)
+[![Compiler Plugin](https://img.shields.io/badge/Plugin-Kotlin_2.4.0-orange?logo=kotlin)](https://kotlinlang.org)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20JS%20%7C%20WasmJS-lightgrey.svg)](#)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/joost-klitsie/985b3f7fb1939b630ec7c6a06e77434b/raw/coverage.json)
@@ -27,15 +28,60 @@ Designed specifically to handle complex logic transitions with a clean DSL, whil
 
 ## **📦 Installation**
 
+In case you only need the core library, the minimum required Kotlin version is 2.2. In case you also want to use the
+compiler plugin, you need minimum Kotlin version 2.4.0.
 Add the dependency to your commonMain source set:
 
 ```kotlin
 kotlin {
 	sourceSets {
 		commonMain.dependencies {
-          implementation("dev.klitsie.statemachine:statemachine-core:0.3.0")
-		}
-	}
+          implementation("dev.klitsie.statemachine:statemachine-core:0.4.0")
+        }
+    }
+}
+```
+
+### **Compiler Plugin**
+
+A Kotlin compiler plugin is available to verify your state machine definitions at compile time. For this, as mentioned,
+you
+need minimum Kotlin version 2.4.0.
+
+To use it, apply the plugin in your `build.gradle.kts`:
+
+```kotlin
+plugins {
+  id("dev.klitsie.statemachine.compiler.plugin") version "0.4.0"
+}
+```
+
+You can customize the compiler plugin's behavior using the `statemachineCompiler` extension. If an `errorOn...` flag is
+set to
+`true`, it will throw an error during compilation time if the issue is detected. If it is set to `false`, it will not
+throw an error, but it will still print out warnings. It can detect missing, duplicate and wrongly defined states,
+especially in conjunction with sealed interfaces/classes.
+
+```kotlin
+statemachineCompiler {
+  // Enables the compiler plugin, by default it is enabled
+  enabled.set(true)
+
+  // If any leaf is missing, e.g. the class MyState.Something isn't defined anywhere in the state machine
+  errorOnMissingLeaf.set(false)
+
+  // If any state is defined more than once
+  errorOnDuplicateState.set(true)
+
+  // If a state (e.g. MyState.Nested.Something) is defined in a nested state and the nestedState<MyState.Nested> is 
+  // defined, then MyState.Nested.Something cannot be a sibling of nestedState<MyState.Nested> but should be nested 
+  errorOnInvalidNesting.set(true)
+
+  // Similar to missing leaf, except for nested states
+  errorOnIncompleteNestedState.set(false)
+
+  // Any Event that is defined as a child of a sealed Event class/interface but not handled by any definition in the machine.
+  errorOnUnusedEvent.set(false)
 }
 ```
 
@@ -205,4 +251,4 @@ You may obtain a copy of the License at
 
 [http://www.apache.org/licenses/LICENSE-2.0\](http://www.apache.org/licenses/LICENSE-2.0)
 
-Maintained by [klitsie.dev](https://www.google.com/search?q=https://klitsie.dev)
+Maintained by [klitsie.dev](https://klitsie.dev)
