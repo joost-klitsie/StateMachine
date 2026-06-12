@@ -1,0 +1,19 @@
+import dev.klitsie.statemachine.*
+import kotlinx.coroutines.GlobalScope
+
+sealed interface NestedStateSkippedParentState {
+    sealed interface WithSomething: NestedStateSkippedParentState  
+
+    data object SomeChild : WithSomething  
+    data object SomeOtherChild : WithSomething  
+}
+
+fun createMachine() {
+    stateMachine<NestedStateSkippedParentState, Unit, Unit>(
+        scope = GlobalScope,
+        initialState = NestedStateSkippedParentState.SomeChild,
+    ) {
+        state<NestedStateSkippedParentState.SomeChild>()
+        state<NestedStateSkippedParentState.SomeOtherChild>()
+    }
+}

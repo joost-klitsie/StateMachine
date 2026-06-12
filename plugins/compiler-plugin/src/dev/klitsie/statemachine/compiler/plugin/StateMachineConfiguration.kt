@@ -15,7 +15,7 @@ fun CompilerConfiguration.toConfiguration() = StateMachineConfiguration(
 	errorOnMissingLeaf = this[StateMachineConfigurationKeys.ErrorOnMissingLeaf, false],
 	errorOnDuplicateState = this[StateMachineConfigurationKeys.ErrorOnDuplicateState, true],
 	errorOnInvalidNesting = this[StateMachineConfigurationKeys.ErrorOnInvalidNesting, true],
-	errorOnIncompleteNestedState = this[StateMachineConfigurationKeys.ErrorOnIncompleteNestedState, false],
+	errorOnIncompleteNestedState = this[StateMachineConfigurationKeys.ErrorOnIncompleteNestedState, true],
 	errorOnUnusedEvent = this[StateMachineConfigurationKeys.ErrorOnUnusedEvent, false],
 )
 

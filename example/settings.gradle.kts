@@ -1,5 +1,11 @@
+@file:Suppress("UnstableApiUsage")
+
+rootProject.name = "example"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+includeBuild("..")
 pluginManagement {
-	includeBuild("../build-logic")
+	includeBuild("..")
 	repositories {
 		google {
 			mavenContent {
@@ -10,6 +16,7 @@ pluginManagement {
 		}
 		mavenCentral()
 		gradlePluginPortal()
+		mavenLocal()
 	}
 }
 
@@ -23,6 +30,7 @@ dependencyResolutionManagement {
 			}
 		}
 		mavenCentral()
+		mavenLocal()
 	}
 	versionCatalogs {
 		create("libs") {
@@ -31,6 +39,9 @@ dependencyResolutionManagement {
 	}
 }
 
-rootProject.name = "statemachine-plugins"
-include(":gradle-plugin")
-include(":compiler-plugin")
+plugins {
+	id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
+include(":shared")
+include(":androidApp")

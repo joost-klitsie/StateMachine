@@ -1,9 +1,9 @@
-rootProject.name = "StateMachine"
+@file:Suppress("UnstableApiUsage")
+
+rootProject.name = "statemachine"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-includeBuild("plugins")
 
 pluginManagement {
-    includeBuild("plugins")
     includeBuild("build-logic")
     repositories {
         google {
@@ -37,6 +37,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-include(":library")
-include(":example:shared")
-include(":example:androidApp")
+include(":statemachine-core")
+project(":statemachine-core").projectDir = file("library")
+include(":plugins:gradle-plugin")
+include(":plugins:compiler-plugin")

@@ -17,7 +17,6 @@ class NestedExampleViewModel(
 		state<NestedExampleState.Pending> {
 			onEvent<NestedExampleEvent.StartLoading> { _, event ->
 				NestedExampleState.Loading(id = event.id, shouldFail = true)
-
 			}
 		}
 		state<NestedExampleState.Loading> {

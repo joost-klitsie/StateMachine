@@ -13,7 +13,7 @@ open class StatemachineCompilerExtension(objectFactory: ObjectFactory) {
 	val errorOnInvalidNesting: Property<Boolean> =
 		objectFactory.property(Boolean::class.java).convention(true)
 	val errorOnIncompleteNestedState: Property<Boolean> =
-		objectFactory.property(Boolean::class.java).convention(false)
+		objectFactory.property(Boolean::class.java).convention(true)
 	val errorOnUnusedEvent: Property<Boolean> =
 		objectFactory.property(Boolean::class.java).convention(false)
 

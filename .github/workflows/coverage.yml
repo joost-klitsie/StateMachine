@@ -16,12 +16,12 @@ jobs:
           java-version: 21
 
       - name: Generate Report
-        run: ./gradlew library:koverPrintCoverage
+        run: ./gradlew koverPrintCoverage
 
       - name: Extract Coverage
         id: extract_coverage
         run: |
-          PERCENTAGE=$(grep "line coverage" library/build/kover/coverage.txt | grep -oP '\d+(?=%)')
+          PERCENTAGE=$(grep "line coverage" build/kover/coverage.txt | grep -oP '\d+(?=%)')
           PERCENTAGE=${PERCENTAGE:-0}
           
           echo "percent=$PERCENTAGE" >> $GITHUB_OUTPUT

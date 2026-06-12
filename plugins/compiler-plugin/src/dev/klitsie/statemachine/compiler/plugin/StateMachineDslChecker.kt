@@ -37,10 +37,7 @@ data class StateHierarchyNode(
 	val symbol: FirRegularClassSymbol?,
 	val isSealed: Boolean,
 	val children: List<StateHierarchyNode>,
-) {
-	fun getAllLeaves(): List<ConeKotlinType> =
-		if (!isSealed) listOf(type) else children.flatMap { it.getAllLeaves() }
-}
+)
 
 class StateMachineDslChecker(
 	private val configuration: StateMachineConfiguration,
@@ -84,7 +81,7 @@ class StateMachineDslChecker(
 			configuration,
 		)
 		validateUnusedEvents(expression, block, eventType, configuration)
-		validateNestingStructure(declaredNodes, hierarchy, hierarchy, configuration)
+		validateNestingStructure(declaredNodes, hierarchy, hierarchy, allDeclaredClassIds, configuration)
 	}
 
 	@OptIn(SymbolInternals::class)
@@ -180,6 +177,16 @@ class StateMachineDslChecker(
 		check(nodes)
 	}
 
+	private fun getExpectedNodes(
+		node: StateHierarchyNode,
+		allDeclaredClassIds: Set<ClassId>,
+	): List<StateHierarchyNode> {
+		if (node.type.classId in allDeclaredClassIds || node.children.isEmpty()) {
+			return listOf(node)
+		}
+		return node.children.flatMap { getExpectedNodes(it, allDeclaredClassIds) }
+	}
+
 	context(context: CheckerContext, reporter: DiagnosticReporter)
 	private fun validateCompletenessRecursive(
 		nodes: List<DslNode>,
@@ -191,10 +198,12 @@ class StateMachineDslChecker(
 	) {
 		val declaredTypes = nodes.map { it.type.classId }.toSet()
 
+		val expectedNodes = currentHierarchy.children.flatMap { getExpectedNodes(it, allDeclaredClassIds) }
+
 		// A state is missing if it's a valid child in the hierarchy,
 		// it was not declared in THIS block, AND it was not declared ANYWHERE else.
 		// (If it was declared elsewhere, it's an INVALID_NESTING error, not a missing state)
-		val missing = currentHierarchy.children.filter {
+		val missing = expectedNodes.filter {
 			it.type.classId !in declaredTypes && it.type.classId !in allDeclaredClassIds
 		}
 
@@ -203,28 +212,29 @@ class StateMachineDslChecker(
 				currentHierarchy.type.classId?.shortClassName?.asString() ?: "StateMachine"
 			val errorSource =
 				rootSource // Explicitly use the root block source here instead of nodes.firstOrNull()
-			reporter.reportOn(
-				errorSource,
-				configuration.missingLeafDiagnostics(),
-				missing.joinToString { it.type.classId?.shortClassName?.asString() ?: "?" },
-				scopeName,
-				context,
-			)
+
+			if (currentHierarchy === hierarchyRoot) {
+				reporter.reportOn(
+					errorSource,
+					configuration.missingLeafDiagnostics(),
+					missing.joinToString { it.type.classId?.shortClassName?.asString() ?: "?" },
+					scopeName,
+					context,
+				)
+			} else {
+				reporter.reportOn(
+					errorSource,
+					configuration.incompleteNestedDiagnostics(),
+					scopeName,
+					context,
+				)
+			}
 		}
 
 		nodes.forEach { node ->
 			// We search from hierarchyRoot so we can still recurse into misplaced states
 			val nodeHierarchy = findNodeInHierarchy(hierarchyRoot, node.type)
 			if (node.isNested && nodeHierarchy != null) {
-				if (node.children.isEmpty()) {
-					reporter.reportOn(
-						node.source,
-						configuration.incompleteNestedDiagnostics(),
-						node.type.classId?.shortClassName?.asString() ?: "?",
-						context,
-					)
-				}
-
 				validateCompletenessRecursive(
 					node.children,
 					allDeclaredClassIds,
@@ -237,19 +247,30 @@ class StateMachineDslChecker(
 		}
 	}
 
+	private fun findClosestDeclaredAncestor(
+		hierarchyRoot: StateHierarchyNode,
+		target: ConeKotlinType,
+		allDeclaredClassIds: Set<ClassId>,
+	): StateHierarchyNode? {
+		val parent = findParentInHierarchy(hierarchyRoot, target) ?: return null
+		if (parent.type.classId in allDeclaredClassIds || parent.type.isSameType(hierarchyRoot.type)) {
+			return parent
+		}
+		return findClosestDeclaredAncestor(hierarchyRoot, parent.type, allDeclaredClassIds)
+	}
+
 	context(context: CheckerContext, reporter: DiagnosticReporter)
 	private fun validateNestingStructure(
 		nodes: List<DslNode>,
 		hierarchyRoot: StateHierarchyNode,
 		expectedParent: StateHierarchyNode,
+		allDeclaredClassIds: Set<ClassId>,
 		configuration: StateMachineConfiguration,
 	) {
 		for (node in nodes) {
-			// 1. Is this node a direct child of the expected parent hierarchy block?
-			val isDirectChild = expectedParent.children.any { it.type.isSameType(node.type) }
+			val correctParent = findClosestDeclaredAncestor(hierarchyRoot, node.type, allDeclaredClassIds)
 
-			if (!isDirectChild) {
-				val correctParent = findParentInHierarchy(hierarchyRoot, node.type)
+			if (correctParent == null || !correctParent.type.isSameType(expectedParent.type)) {
 				val correctParentName = correctParent?.type?.classId?.shortClassName?.asString()
 					?: expectedParent.type.classId?.shortClassName?.asString() ?: "?"
 
@@ -263,7 +284,7 @@ class StateMachineDslChecker(
 			}
 
 			val nodeHierarchy = findNodeInHierarchy(hierarchyRoot, node.type) ?: continue
-			validateNestingStructure(node.children, hierarchyRoot, nodeHierarchy, configuration)
+			validateNestingStructure(node.children, hierarchyRoot, nodeHierarchy, allDeclaredClassIds, configuration)
 		}
 	}
 

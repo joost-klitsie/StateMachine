@@ -1,0 +1,16 @@
+import dev.klitsie.statemachine.*
+import kotlinx.coroutines.GlobalScope
+
+sealed interface DuplicateState {
+    data object A : DuplicateState
+}
+
+fun createMachine() {
+    stateMachine<DuplicateState, Unit, Unit>(
+        scope = GlobalScope,
+        initialState = DuplicateState.A,
+    ) {
+        state<DuplicateState.A>()
+        state<DuplicateState.A>()
+    }
+}

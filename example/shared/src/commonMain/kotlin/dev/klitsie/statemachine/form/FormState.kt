@@ -20,7 +20,9 @@ sealed interface FormState {
 
 	}
 
-	data object Success : FormState
+	sealed interface Lala : FormState
+
+	data object Success : Lala
 
 }
 

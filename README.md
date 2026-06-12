@@ -78,7 +78,7 @@ statemachineCompiler {
   errorOnInvalidNesting.set(true)
 
   // Similar to missing leaf, except for nested states
-  errorOnIncompleteNestedState.set(false)
+  errorOnIncompleteNestedState.set(true)
 
   // Any Event that is defined as a child of a sealed Event class/interface but not handled by any definition in the machine.
   errorOnUnusedEvent.set(false)

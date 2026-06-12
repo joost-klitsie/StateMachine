@@ -1,0 +1,22 @@
+import dev.klitsie.statemachine.*
+import kotlinx.coroutines.GlobalScope
+
+sealed interface ExtDupState {
+    data object One : ExtDupState
+    data object Two : ExtDupState
+}
+
+fun StateMachineBuilder<ExtDupState, ExtDupState, Unit, Unit>.defineMoreStates() {
+    state<ExtDupState.Two>()
+}
+
+fun createExtDupMachine() {
+    stateMachine<ExtDupState, Unit, Unit>(
+        scope = GlobalScope,
+        initialState = ExtDupState.One,
+    ) {
+        state<ExtDupState.One>()
+        state<ExtDupState.Two>()
+        defineMoreStates()
+    }
+}

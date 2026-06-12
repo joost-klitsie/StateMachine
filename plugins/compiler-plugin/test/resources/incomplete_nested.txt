@@ -1,0 +1,23 @@
+import dev.klitsie.statemachine.*
+import kotlinx.coroutines.GlobalScope
+
+sealed interface IncompleteNestedState {
+    sealed interface Nested : IncompleteNestedState {
+        data object A : Nested
+        data object B : Nested
+    }
+    data object C : IncompleteNestedState
+}
+
+fun createMachine() {
+    stateMachine<IncompleteNestedState, Unit, Unit>(
+        scope = GlobalScope,
+        initialState = IncompleteNestedState.Nested.A,
+    ) {
+        nestedState<IncompleteNestedState.Nested> {
+            state<IncompleteNestedState.Nested.A>()
+            // Missing B
+        }
+        state<IncompleteNestedState.C>()
+    }
+}

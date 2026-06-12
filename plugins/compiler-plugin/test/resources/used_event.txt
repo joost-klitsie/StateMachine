@@ -1,0 +1,23 @@
+import dev.klitsie.statemachine.*
+import kotlinx.coroutines.GlobalScope
+
+sealed interface UsedState {
+    data object A : UsedState
+}
+
+sealed interface UsedEvent {
+    data object Used : UsedEvent
+    data object AlsoUsed : UsedEvent
+}
+
+fun createMachine() {
+    stateMachine<UsedState, Unit, UsedEvent>(
+        scope = GlobalScope,
+        initialState = UsedState.A,
+    ) {
+        state<UsedState.A> {
+            onEvent<UsedEvent.Used> { _, _ -> UsedState.A }
+            onEvent<UsedEvent.AlsoUsed> { _, _ -> UsedState.A }
+        }
+    }
+}

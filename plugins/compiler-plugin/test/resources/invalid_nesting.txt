@@ -1,0 +1,21 @@
+import dev.klitsie.statemachine.*
+import kotlinx.coroutines.GlobalScope
+
+sealed interface InvalidNestingState {
+    sealed interface WithSomething: InvalidNestingState  
+
+    data object SomeChild : WithSomething  
+    data object SomeOtherChild : WithSomething  
+}
+
+fun createMachine() {
+    stateMachine<InvalidNestingState, Unit, Unit>(
+        scope = GlobalScope,
+        initialState = InvalidNestingState.SomeChild,
+    ) {
+        nestedState<InvalidNestingState.WithSomething> {
+            state<InvalidNestingState.SomeChild>()
+        }
+        state<InvalidNestingState.SomeOtherChild>()
+    }
+}

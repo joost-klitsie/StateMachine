@@ -1,0 +1,17 @@
+import dev.klitsie.statemachine.*
+import kotlinx.coroutines.GlobalScope
+
+sealed interface ValidDslState {
+    data object A : ValidDslState
+    data object B : ValidDslState
+}
+
+fun createMachine() {
+    stateMachine<ValidDslState, Unit, Unit>(
+        scope = GlobalScope,
+        initialState = ValidDslState.A,
+    ) {
+        state<ValidDslState.A>()
+        state<ValidDslState.B>()
+    }
+}

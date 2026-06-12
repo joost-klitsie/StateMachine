@@ -1,0 +1,17 @@
+import dev.klitsie.statemachine.*
+import kotlinx.coroutines.GlobalScope
+
+sealed interface MissingLeafState {
+    data object A : MissingLeafState
+    data object B : MissingLeafState
+}
+
+fun createMachine() {
+    stateMachine<MissingLeafState, Unit, Unit>(
+        scope = GlobalScope,
+        initialState = MissingLeafState.A,
+    ) {
+        state<MissingLeafState.A>()
+        // Missing state B
+    }
+}
