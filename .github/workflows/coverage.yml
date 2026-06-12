@@ -21,15 +21,17 @@ jobs:
       - name: Extract Coverage
         id: extract_coverage
         run: |
-          PERCENTAGE=$(grep "line coverage" build/kover/coverage.txt | grep -oP '\d+(?=%)')
+          PERCENTAGE=$(grep "line coverage" build/kover/coverage.txt | grep -oP '[\d.]+(?=%)')
           PERCENTAGE=${PERCENTAGE:-0}
           
           echo "percent=$PERCENTAGE" >> $GITHUB_OUTPUT
           
           # Logic to determine color based on percentage
-          if [ "$PERCENTAGE" -ge 90 ]; then
+          # Truncate decimal part for integer comparison
+          INT_PERCENTAGE=${PERCENTAGE%.*}
+          if [ "$INT_PERCENTAGE" -ge 90 ]; then
             echo "color=green" >> $GITHUB_OUTPUT
-          elif [ "$PERCENTAGE" -ge 75 ]; then
+          elif [ "$INT_PERCENTAGE" -ge 75 ]; then
             echo "color=yellow" >> $GITHUB_OUTPUT
           else
             echo "color=red" >> $GITHUB_OUTPUT
