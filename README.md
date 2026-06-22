@@ -36,7 +36,7 @@ Add the dependency to your commonMain source set:
 kotlin {
 	sourceSets {
 		commonMain.dependencies {
-          implementation("dev.klitsie.statemachine:statemachine-core:0.4.0")
+          implementation("dev.klitsie.statemachine:statemachine-core:0.4.1")
         }
     }
 }
@@ -52,7 +52,7 @@ To use it, apply the plugin in your `build.gradle.kts`:
 
 ```kotlin
 plugins {
-  id("dev.klitsie.statemachine.compiler.plugin") version "0.4.0"
+  id("dev.klitsie.statemachine.compiler.plugin") version "0.4.1"
 }
 ```
 
@@ -234,6 +234,22 @@ fun QuizScreen(
 	}
 }
 ```
+
+## **📱 Examples**
+
+You can find comprehensive examples of how to use the library in
+the [example module](example/shared/src/commonMain/kotlin/dev/klitsie/statemachine):
+
+* **[Counter](example/shared/src/commonMain/kotlin/dev/klitsie/statemachine/counter)**: Demonstrates side effects,
+  state-specific logic, and milestone notifications.
+* **[Form](example/shared/src/commonMain/kotlin/dev/klitsie/statemachine/form)**: Shows form validation, nested states,
+  and blocking user input based on state.
+* **[Loading](example/shared/src/commonMain/kotlin/dev/klitsie/statemachine/loading)**: Implements a generic loading
+  pattern with retry and refresh logic.
+* **[Pagination](example/shared/src/commonMain/kotlin/dev/klitsie/statemachine/pagination)**: Shows infinite scrolling,
+  loading more items, and error handling in lists.
+* **[Overview](example/shared/src/commonMain/kotlin/dev/klitsie/statemachine/overview)**: The navigation hub for all
+  examples.
 
 ## **🌐 Wasm-JS & JS Specifics**
 

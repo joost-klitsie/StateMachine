@@ -1,39 +1,32 @@
 package dev.klitsie.statemachine.form
 
 sealed interface FormState {
+    val input: String
+    val error: String?
 
-	data class LoadingFormData(
-		val simulateLoadingFailure: Boolean = false,
-	) : FormState
+    sealed interface Input : FormState {
+        data class PendingInput(override val input: String, override val error: String? = null) : Input
+        data class PendingSubmit(override val input: String, override val error: String? = null) : Input
+    }
 
-	data class FormLoadingFailure(val error: Throwable) : FormState
+    data object Submitting : FormState {
+        override val input: String = ""
+        override val error: String? = null
+    }
 
-	sealed interface WithData : FormState {
-		val value: String
-
-		data class PendingInput(override val value: String) : WithData
-		data class SavingForm(override val value: String) : WithData
-		data class SavingFailure(
-			override val value: String,
-			val error: Throwable,
-		) : WithData
-
-	}
-
-	sealed interface Lala : FormState
-
-	data object Success : Lala
-
+    data class Success(val result: String) : FormState {
+        override val input: String = ""
+        override val error: String? = null
+    }
 }
 
 sealed interface FormEvent {
+    data class UpdateInput(val input: String) : FormEvent
+    data object Submit : FormEvent
+    data class SubmitResult(val result: Result<String>) : FormEvent
+    data object Reset : FormEvent
+}
 
-	data class Failure(val error: Throwable) : FormEvent
-	data class LoadingSuccess(val value: String) : FormEvent
-	data object Retry : FormEvent
-	data class Update(val value: String) : FormEvent
-	data object SavingSuccess : FormEvent
-	data object Save : FormEvent
-	data object Reset : FormEvent
-
+sealed interface FormEffect {
+    data object ClearFocus : FormEffect
 }

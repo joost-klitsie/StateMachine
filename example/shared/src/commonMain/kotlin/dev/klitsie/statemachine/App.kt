@@ -1,103 +1,48 @@
 package dev.klitsie.statemachine
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.klitsie.statemachine.nested.NestedExampleEffect
-import dev.klitsie.statemachine.nested.NestedExampleEvent
-import dev.klitsie.statemachine.nested.NestedExampleState
-import dev.klitsie.statemachine.nested.NestedExampleViewModel
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import dev.klitsie.statemachine.counter.CounterScreen
+import dev.klitsie.statemachine.form.ui.FormScreen
+import dev.klitsie.statemachine.loading.LoadingScreen
+import dev.klitsie.statemachine.overview.*
+import dev.klitsie.statemachine.pagination.PaginationScreen
 
 @Composable
-fun App(onClose: () -> Unit = {}) {
+fun App() {
 	MaterialTheme {
-		val viewModel = viewModel { NestedExampleViewModel() }
+		val viewModel = viewModel { OverviewViewModel() }
 		val state by viewModel.stateMachine.collectAsStateWithLifecycle()
 
-		LaunchedEffect(viewModel.stateMachine) {
-			viewModel.stateMachine.consumeEffects { effect ->
-				when (effect) {
-					NestedExampleEffect.Close -> onClose()
-				}
-			}
-		}
-
-		Box(
-			modifier = Modifier
-				.fillMaxSize(),
-			contentAlignment = Alignment.Center,
-		) {
-			when (val state = state) {
-				NestedExampleState.Pending -> Button(
-					onClick = {
-						viewModel.stateMachine.send(
-							NestedExampleEvent.StartLoading("1"),
-						)
-					},
-				) {
-					Text("Start loading!")
-				}
-
-				is NestedExampleState.Loading -> CircularProgressIndicator()
-
-				is NestedExampleState.InputName -> Column {
-					TextField(
-						value = state.username,
-						onValueChange = { viewModel.stateMachine.send(NestedExampleEvent.UpdateName(it)) },
+		NavDisplay(
+			backStack = state.backStack,
+			entryDecorators = listOf(
+				rememberSaveableStateHolderNavEntryDecorator(),
+				rememberViewModelStoreNavEntryDecorator(),
+			),
+		) { key ->
+			when (key) {
+				NavKey.Overview -> NavEntry(key) {
+					OverviewScreen(
+						onSelectExample = { viewModel.stateMachine.send(OverviewEvent.SelectExample(it)) },
 					)
 				}
 
-				is NestedExampleState.LoadingFailed.Retryable -> Column {
-					Text("Oh no")
-					Spacer(modifier = Modifier.height(16.dp))
-					Button(
-						onClick = {
-							viewModel.stateMachine.send(NestedExampleEvent.Retry)
-						},
-					) {
-						Text("Retry")
+				is NavKey.ExampleDetail -> NavEntry(key) {
+					val onBack = { viewModel.stateMachine.send(OverviewEvent.BackToOverview) }
+					when (key.example) {
+						Example.Counter -> CounterScreen(onBack = onBack)
+						Example.Form -> FormScreen(onBack = onBack)
+						Example.Loading -> LoadingScreen(onBack = onBack)
+						Example.Pagination -> PaginationScreen(onBack = onBack)
 					}
-					Button(
-						onClick = {
-							viewModel.stateMachine.send(NestedExampleEvent.Close)
-						},
-					) {
-						Text("Close")
-					}
-
-				}
-
-				NestedExampleState.LoadingFailed.UserIsAnIdiot -> Column {
-					Text("Oh no, you are an idiot")
-					Spacer(modifier = Modifier.height(16.dp))
-					Button(
-						onClick = {
-							viewModel.stateMachine.send(NestedExampleEvent.Close)
-						},
-					) {
-						Text("Close")
-					}
-
-				}
-
-				NestedExampleState.LoadingFailed.UserLockedOut -> Column {
-					Text("Oh no, you are locked out!")
-					Spacer(modifier = Modifier.height(16.dp))
-					Button(
-						onClick = {
-							viewModel.stateMachine.send(NestedExampleEvent.Close)
-						},
-					) {
-						Text("Close")
-					}
-
 				}
 			}
 		}
